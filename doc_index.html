@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doc Search — Access Codes</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: #080C18;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(61,130,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(61,130,247,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridMove 20s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes gridMove {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(40px); }
+  }
+  .card {
+    background: #0F1525;
+    border: 1px solid #1E2E50;
+    border-radius: 20px;
+    padding: 48px 44px 40px;
+    width: 460px;
+    box-shadow: 0 0 60px rgba(61,130,247,0.08), 0 24px 48px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 44px; right: 44px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #3D82F7, #06C0E0, transparent);
+    border-radius: 0 0 4px 4px;
+  }
+  .brand { text-align: center; margin-bottom: 36px; }
+  .brand-doc { font-size: 42px; font-weight: 900; color: #3D82F7; letter-spacing: 2px; line-height: 1; }
+  .brand-search { font-size: 18px; font-weight: 600; color: #6A80A0; letter-spacing: 6px; margin-top: 2px; }
+  .brand-sub { font-size: 12px; color: #3A4E6A; margin-top: 10px; letter-spacing: 1px; }
+  .timer-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 32px; }
+  .ring-outer { position: relative; width: 80px; height: 80px; }
+  .ring-svg { transform: rotate(-90deg); width: 80px; height: 80px; }
+  .ring-bg { fill: none; stroke: #1A2440; stroke-width: 5; }
+  .ring-fill {
+    fill: none; stroke: #3D82F7; stroke-width: 5; stroke-linecap: round;
+    stroke-dasharray: 220; stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.5s;
+  }
+  .ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring-seconds { font-size: 22px; font-weight: 700; color: #EDF0FF; line-height: 1; }
+  .ring-label { font-size: 9px; color: #4E5E7A; letter-spacing: 1px; margin-top: 2px; }
+  .timer-caption { font-size: 11px; color: #3A4E6A; margin-top: 10px; letter-spacing: 0.5px; }
+  .code-block {
+    background: #0B0F1C;
+    border: 1px solid #1A2840;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    position: relative;
+    transition: border-color 0.3s;
+  }
+  .code-block:hover { border-color: #2E4268; }
+  .code-type { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .type-alpha { color: #06C0E0; }
+  .type-num   { color: #10CC81; }
+  .code-row { display: flex; align-items: center; justify-content: space-between; }
+  .code-value { font-family: 'Courier New', monospace; font-size: 32px; font-weight: 700; letter-spacing: 6px; }
+  .code-alpha { color: #EDF0FF; }
+  .code-num   { color: #10CC81; }
+  .copy-btn {
+    background: #1A2440; border: 1px solid #2A3A58; border-radius: 8px;
+    color: #6A80A0; font-size: 12px; padding: 7px 14px; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .copy-btn:hover { background: #1E2E50; color: #A8B8D8; border-color: #3D5080; }
+  .copy-btn.copied { background: #0D2818; border-color: #10CC81; color: #10CC81; }
+  @keyframes flashIn { 0% { opacity: 0; transform: scale(0.96); } 100% { opacity: 1; transform: scale(1); } }
+  .code-block.refreshed { animation: flashIn 0.4s ease; }
+  .footer { text-align: center; margin-top: 28px; font-size: 11px; color: #253040; letter-spacing: 0.5px; }
+  .footer span { color: #3A5070; }
+  .created-by {
+    display: flex; flex-direction: column; align-items: center; margin-top: 28px;
+    padding-top: 20px; border-top: 1px solid #141E32;
+  }
+  .cb-dot { font-size: 12px; color: #253040; margin-bottom: 4px; }
+  .cb-text { font-size: 11px; color: #2A3A50; letter-spacing: 1px; margin-bottom: 4px; }
+  .cb-name { font-family: 'Lucida Handwriting', 'Segoe Script', cursive; font-size: 26px; font-weight: bold; color: #06C0E0; margin-bottom: 3px; }
+  .cb-sub { font-size: 11px; color: #253040; letter-spacing: 0.5px; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand">
+    <div class="brand-doc">DOC</div>
+    <div class="brand-search">SEARCH</div>
+    <div class="brand-sub">v1.11 · Access Code Generator</div>
+  </div>
+
+  <div class="timer-wrap">
+    <div class="ring-outer">
+      <svg class="ring-svg" viewBox="0 0 80 80">
+        <circle class="ring-bg"   cx="40" cy="40" r="35"/>
+        <circle class="ring-fill" cx="40" cy="40" r="35" id="ringFill"/>
+      </svg>
+      <div class="ring-text">
+        <span class="ring-seconds" id="secLeft">—</span>
+        <span class="ring-label">SEC</span>
+      </div>
+    </div>
+    <div class="timer-caption">Codes refresh every 5 minutes</div>
+  </div>
+
+  <div class="code-block" id="blockAlpha">
+    <div class="code-type type-alpha">● Alpha-Numeric Code</div>
+    <div class="code-row">
+      <span class="code-value code-alpha" id="codeAlpha">——————</span>
+      <button class="copy-btn" id="btnAlpha" onclick="copyCode('codeAlpha','btnAlpha')">Copy</button>
+    </div>
+  </div>
+
+  <div class="code-block" id="blockNum">
+    <div class="code-type type-num">● Numeric Code</div>
+    <div class="code-row">
+      <span class="code-value code-num" id="codeNum">——————</span>
+      <button class="copy-btn" id="btnNum" onclick="copyCode('codeNum','btnNum')">Copy</button>
+    </div>
+  </div>
+
+  <div class="footer">Use either code in Doc Search · <span>both are valid simultaneously</span></div>
+  <div class="created-by">
+    <span class="cb-dot">✦</span>
+    <span class="cb-text">Created by</span>
+    <span class="cb-name">Salman</span>
+    <span class="cb-sub">abc</span>
+  </div>
+</div>
+
+<script>
+const SALT = "SALMAN-TOTP";
+const PERIOD = 300;
+let lastWin = null;
+
+async function tick() {
+  const now = Math.floor(Date.now() / 1000);
+  const win = Math.floor(now / PERIOD);
+  const secLeft = PERIOD - (now % PERIOD);
+
+  const circumference = 2 * Math.PI * 35;
+  const offset = circumference * (1 - secLeft / PERIOD);
+  const ring = document.getElementById('ringFill');
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = (secLeft / PERIOD) > 0.4 ? '#3D82F7' : (secLeft / PERIOD) > 0.2 ? '#F5A020' : '#F04545';
+  document.getElementById('secLeft').textContent = secLeft;
+
+  if (win !== lastWin) {
+    lastWin = win;
+    const rawInput = SALT + win;
+    
+    // Alphanumeric: MD5 -> First 6 characters (Uppercase)
+    const alpha = CryptoJS.MD5(rawInput).toString().substring(0, 6).toUpperCase();
+    
+    // Numeric: SHA1 -> Filter Digits -> First 6 digits
+    const sha1Hash = CryptoJS.SHA1(rawInput).toString();
+    const num = sha1Hash.replace(/\D/g, '').substring(0, 6);
+
+    document.getElementById('codeAlpha').textContent = alpha;
+    document.getElementById('codeNum').textContent = num;
+
+    ['blockAlpha','blockNum'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('refreshed');
+      void el.offsetWidth;
+      el.classList.add('refreshed');
+    });
+  }
+}
+
+function copyCode(codeId, btnId) {
+  const text = document.getElementById(codeId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
